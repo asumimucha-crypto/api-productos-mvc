@@ -1,4 +1,3 @@
-const req = require('express/lib/request');
 const Producto = require('../models/producto.model');
 
 //Valida los datos recibidos. Devuelve un mensaje de error o null si todo esta bien. 
@@ -19,7 +18,7 @@ const validarProducto = ({nombre, precio, stock }) => {
 //GET /api/productos
 const listar = async (req, res) => {
     try {
-      const productos = await Productos.obtenerTodos();
+      const productos = await Producto.obtenerTodos();
       res.status(200).json(productos);  
     } catch (error) {
         console.error(error);
@@ -49,7 +48,11 @@ const crear = async (req, res) => {
         if (errorValidacion) {
             return res.status(400).json({ mensaje: errorValidacion });
         }
-        const nuevo = await Producto.crear(datos);
+        const usuario = datos.usuario ?? datos.Usuario;
+        if (typeof usuario !== 'string' || usuario.trim() === '' || usuario.trim().length > 50) {
+            return res.status(400).json({ mensaje: 'El usuario es obligatorio y debe tener hasta 50 caracteres' });
+        }
+        const nuevo = await Producto.crear({ ...datos, Usuario: usuario.trim() });
         res.status(201).json(nuevo);
         }catch (error) {
         console.error(error);
@@ -85,7 +88,7 @@ const eliminar = async (req, res) => {
       if (filasAfectadas === 0) {
         return res.status(404).json({mensaje: 'Producto no encontrado'});
       }
-      res.status(200).json({ mensaje: 'Producto eliminado corretamente' });
+      res.status(200).json({ mensaje: 'Producto eliminado correctamente' });
     }catch (error) {
       console.error(error);
       res.status(500).json({ mensaje: 'Error al eliminar el producto' });
